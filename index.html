@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Animação - Button</title>
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <div id="grid"></div>
+
+      <button type="button">Generate random grid</button>
+    </main>
+
+    <script type="text/javascript">
+      let matrix = [];
+      let previousPosition = []; // armazena a última posição
+      let currentHouseIndex = 0;
+
+      // Gerar uma matriz quadrada com base em n elementos (5x5, 6x6)
+      const numberOfRowsCol = 5;
+
+      // Gera a matriz
+      function fillMatrix() {
+        const numberOfCells = numberOfRowsCol * numberOfRowsCol; // 25
+
+        for (let i = 0; i < numberOfRowsCol; i++) {
+          matrix.push([]);
+          for (let j = 0; j < numberOfRowsCol; j++) {
+            matrix[i].push([]);
+          }
+        }
+      }
+
+      // Gera posição inicial dentro da matriz
+      function initialMatrixPosition() {
+        const generateRandomPositionCellX = Math.floor(
+          Math.random() * numberOfRowsCol
+        );
+        const generateRandomPositionCellY = Math.floor(
+          Math.random() * numberOfRowsCol
+        );
+
+        return [generateRandomPositionCellX, generateRandomPositionCellY];
+      }
+
+      // Gera número posições que irá percorrer
+      function generateNumberOfIterations() {
+        const DECREASE_MAX_ITERATIONS = 1;
+        const DECREASE_MIN_ITERATIONS = 2;
+
+        const maxNumberOfIterations =
+          numberOfRowsCol * (numberOfRowsCol - DECREASE_MAX_ITERATIONS); // 20
+        const minNumberOfIterations =
+          numberOfRowsCol * (numberOfRowsCol - DECREASE_MIN_ITERATIONS); // 15
+
+        const randomNumberOfIterations = randomIntFromInterval(
+          minNumberOfIterations,
+          maxNumberOfIterations
+        );
+        return randomNumberOfIterations;
+      }
+
+      function walk({
+        walkPreviousPosition,
+        walkXPosition,
+        walkYPosition,
+        initialRunPoint,
+        numberOfIterations,
+        matrix: matrixData,
+      }) {
+        // Para o loop
+        if (initialRunPoint > numberOfIterations) {
+          return false;
+        }
+
+        let currentXPosition;
+        let currentYPosition;
+
+        // Caso seja a primeira casa, gera uma posição aleatório
+        // Caso contrário, irá percorrer o caminho que está sendo gerado
+        if (initialRunPoint === 0) {
+          const [initialPositionX, initialPositionY] = initialMatrixPosition();
+          currentXPosition = initialPositionX;
+          currentYPosition = initialPositionY;
+        } else {
+          currentXPosition = walkXPosition;
+          currentYPosition = walkYPosition;
+        }
+
+        // Define quais casas são válidas (no grid)
+        const leftHouse = [currentXPosition - 1, currentYPosition];
+        const rightHouse = [currentXPosition + 1, currentYPosition];
+        const topHouse = [currentXPosition, currentYPosition - 1];
+        const bottomHouse = [currentXPosition, currentYPosition + 1];
+
+        const validHouses = [leftHouse, rightHouse, topHouse, bottomHouse];
+
+        // Removes as casas que são inválidas (-1, fora do limite da grid e a casa anterior)
+        const removeInvalidHouses = validHouses.filter((validHouse) => {
+          const [validHousePositionX, validHousePositionY] = validHouse;
+
+          if (
+            validHousePositionX === walkPreviousPosition[0] &&
+            validHousePositionY === walkPreviousPosition[1]
+          ) {
+            return false;
+          }
+
+          if (
+            validHousePositionX === -1 ||
+            validHousePositionX === numberOfRowsCol ||
+            validHousePositionY === -1 ||
+            validHousePositionY === numberOfRowsCol
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+        const nextHouseToWalkIndex = Math.floor(
+          Math.random() * removeInvalidHouses.length
+        );
+
+        // Dentro das opções válidas, para qual casa ele vai andar
+        const nextHouseToWalk = removeInvalidHouses[nextHouseToWalkIndex];
+
+        let findAlreadyCreatedHouse =
+          matrixData[currentXPosition][currentYPosition];
+
+        // Verifica se já foi passado por essa casa
+        // Se não, coloca um novo objeto dentro do array (cria os dados da sala)
+        if (!findAlreadyCreatedHouse.length) {
+          const data = {
+            currentPosition: [currentXPosition, currentYPosition],
+          };
+
+          matrixData[currentXPosition][currentYPosition].push(data);
+        }
+
+        initialRunPoint++;
+
+        const currentDataPreviousPosition = [walkXPosition, walkYPosition];
+
+        return walk({
+          walkPreviousPosition: currentDataPreviousPosition,
+          walkXPosition: nextHouseToWalk[0],
+          walkYPosition: nextHouseToWalk[1],
+          initialRunPoint,
+          numberOfIterations,
+          matrix: matrixData,
+        });
+      }
+
+      //  Função para gerar as salas
+      function randomWalk() {
+        const numberOfIterations = generateNumberOfIterations();
+        let initialRunPoint = 0;
+
+        walk({
+          walkPreviousPosition: previousPosition,
+          walkXPosition: null,
+          walkYPosition: null,
+          initialRunPoint,
+          numberOfIterations,
+          matrix,
+        });
+      }
+
+      // Order of functions
+      fillMatrix();
+      randomWalk();
+
+      // *** Utils ***
+
+      // Gera um número aleatório dentro de um intervalo
+      function randomIntFromInterval(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      // *** Draw on screen ***
+      const gridElement = document.getElementById("grid");
+
+      generateGridElement();
+
+      function generateGridElement() {
+        const wrapper = document.createElement("div");
+        wrapper.setAttribute("id", "wrapper");
+
+        matrix.forEach((xPositionGrid) => {
+          const generateRows = document.createElement("div");
+
+          xPositionGrid.forEach((yPositionGrid) => {
+            const generateInnerRows = document.createElement("div");
+
+            if (yPositionGrid.length) {
+              generateInnerRows.classList.add("house");
+            }
+
+            generateRows.appendChild(generateInnerRows);
+          });
+
+          wrapper.appendChild(generateRows);
+        });
+
+        gridElement.appendChild(wrapper);
+      }
+
+      // Reseta a matriz, para gera novamente
+      function clearMatrix() {
+        matrix = [];
+        currentHouseIndex = 0;
+        previousPosition = [];
+      }
+
+      // Reseta o grid para posicionar o novo mapa
+      function clearGridElement() {
+        const wrapperElement = document.getElementById("wrapper");
+
+        wrapperElement.remove();
+      }
+
+      function generateNewMap() {
+        clearMatrix();
+        clearGridElement();
+        fillMatrix();
+        randomWalk();
+        generateGridElement();
+      }
+
+      const buttonElement = document.querySelector("button");
+
+      buttonElement.addEventListener("click", generateNewMap);
+    </script>
+  </body>
+</html>

@@ -17,6 +17,7 @@
       let matrix = [];
       let previousPosition = []; // armazena a última posição
       let currentHouseIndex = 0;
+      let walkedHouses = [];
 
       // Gerar uma matriz quadrada com base em n elementos (5x5, 6x6)
       const numberOfRowsCol = 6;
@@ -50,9 +51,9 @@
         const DECREASE_MAX_ITERATIONS = 1;
         const DECREASE_MIN_ITERATIONS = 2;
 
-        const maxNumberOfIterations =
+        const maxNumberOfIterations = 
           numberOfRowsCol * (numberOfRowsCol - DECREASE_MAX_ITERATIONS); // 20
-        const minNumberOfIterations =
+        const minNumberOfIterations = 
           numberOfRowsCol * (numberOfRowsCol - DECREASE_MIN_ITERATIONS); // 15
 
         const randomNumberOfIterations = randomIntFromInterval(
@@ -72,7 +73,13 @@
         matrix: matrixData,
       }) {
         // Para o loop
-        if (initialRunPoint >= numberOfIterations) {
+        let shouldPlaceDoor = true;
+        if (initialRunPoint + 1 === numberOfIterations) {
+          shouldPlaceDoor = false;
+        }
+
+        if (initialRunPoint === numberOfIterations) {
+          shouldPlaceDoor = false;
           return false;
         }
 
@@ -93,10 +100,10 @@
         }
 
         // Define quais casas são válidas (no grid)
-        const topHouse = [currentXPosition - 1, currentYPosition];
-        const bottomHouse = [currentXPosition + 1, currentYPosition];
-        const rightHouse = [currentXPosition, currentYPosition - 1];
-        const leftHouse = [currentXPosition, currentYPosition + 1];
+        const leftHouse = [currentXPosition - 1, currentYPosition];
+        const rightHouse = [currentXPosition + 1, currentYPosition];
+        const topHouse = [currentXPosition, currentYPosition - 1];
+        const bottomHouse = [currentXPosition, currentYPosition + 1];
 
         const validHouses = [leftHouse, rightHouse, topHouse, bottomHouse];
 
@@ -135,22 +142,16 @@
 
         function checkHouseDirectionToWalk() {
           if (
-            nextHouseToWalk[0] === leftHouse[0] &&
-            nextHouseToWalk[1] === leftHouse[1]
-          ) {
-            return "LEFT";
-          }
-          if (
             nextHouseToWalk[0] === rightHouse[0] &&
             nextHouseToWalk[1] === rightHouse[1]
           ) {
             return "RIGHT";
           }
           if (
-            nextHouseToWalk[0] === topHouse[0] &&
-            nextHouseToWalk[1] === topHouse[1]
+            nextHouseToWalk[0] === leftHouse[0] &&
+            nextHouseToWalk[1] === leftHouse[1]
           ) {
-            return "TOP";
+            return "LEFT";
           }
           if (
             nextHouseToWalk[0] === bottomHouse[0] &&
@@ -158,9 +159,17 @@
           ) {
             return "BOTTOM";
           }
+          if (
+            nextHouseToWalk[0] === topHouse[0] &&
+            nextHouseToWalk[1] === topHouse[1]
+          ) {
+            return "TOP";
+          }
         }
 
         const checkDirection = checkHouseDirectionToWalk();
+
+        console.log("CheckDirection", checkDirection);
 
         // console.log(checkDirection);
 
@@ -169,16 +178,17 @@
         if (!findAlreadyCreatedHouse.length) {
           const data = {
             currentPosition: [currentXPosition, currentYPosition],
-            leftHouse:
-              nextHousePreviousDoorPosition === "LEFT" ||
-              checkDirection === "LEFT",
-            rightHouse:
+            rightHouse: shouldPlaceDoor &&
               nextHousePreviousDoorPosition === "RIGHT" ||
               checkDirection === "RIGHT",
-            topHouse:
+            leftHouse:
+            shouldPlaceDoor &&
+              nextHousePreviousDoorPosition === "LEFT" ||
+              checkDirection === "LEFT",
+            topHouse: shouldPlaceDoor&&
               nextHousePreviousDoorPosition === "TOP" ||
               checkDirection === "TOP",
-            bottomHouse:
+            bottomHouse: shouldPlaceDoor &&
               nextHousePreviousDoorPosition === "BOTTOM" ||
               checkDirection === "BOTTOM",
           };
@@ -187,42 +197,43 @@
             data.isStartRoom = true;
           }
 
+          
           matrixData[currentXPosition][currentYPosition].push(data);
         } else {
           const sameHouse = {
             ...matrixData[currentXPosition][currentYPosition][0],
           };
-
-          if (sameHouse.leftHouse) {
+          
+          if (shouldPlaceDoor && sameHouse.leftHouse) {
             sameHouse.leftHouse = true;
-          } else if (
+          } else if (shouldPlaceDoor &&
             nextHousePreviousDoorPosition === "LEFT" ||
             checkDirection === "LEFT"
           ) {
             sameHouse.leftHouse = true;
           }
-
-          if (sameHouse.rightHouse) {
+          
+          if (shouldPlaceDoor && sameHouse.rightHouse) {
             sameHouse.rightHouse = true;
-          } else if (
+          } else if (shouldPlaceDoor &&
             nextHousePreviousDoorPosition === "RIGHT" ||
             checkDirection === "RIGHT"
           ) {
             sameHouse.rightHouse = true;
           }
 
-          if (sameHouse.topHouse) {
+          if (shouldPlaceDoor && sameHouse.topHouse) {
             sameHouse.topHouse = true;
-          } else if (
+          } else if (shouldPlaceDoor &&
             nextHousePreviousDoorPosition === "TOP" ||
             checkDirection === "TOP"
           ) {
             sameHouse.topHouse = true;
           }
-
-          if (sameHouse.bottomHouse) {
+          
+          if (shouldPlaceDoor && sameHouse.bottomHouse) {
             sameHouse.bottomHouse = true;
-          } else if (
+          } else if (shouldPlaceDoor &&
             nextHousePreviousDoorPosition === "BOTTOM" ||
             checkDirection === "BOTTOM"
           ) {
@@ -233,6 +244,8 @@
 
           matrixData[currentXPosition][currentYPosition][0] = { ...sameHouse };
         }
+        
+        walkedHouses.push([currentXPosition, currentYPosition])
 
         initialRunPoint++;
 
@@ -285,6 +298,7 @@
         });
 
         console.log(matrix);
+        console.log(walkedHouses)
       }
 
       // Order of functions
@@ -321,6 +335,7 @@
 
             if (yPositionGrid.length) {
               generateInnerRows.classList.add("house");
+              generateInnerRows.setAttribute("housePosition", yPositionGrid[0].currentPosition)
 
               if (yPositionGrid[0].leftHouse) {
                 const generateDoor = document.createElement("div");

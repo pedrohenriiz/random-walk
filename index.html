@@ -13,12 +13,13 @@
     </main>
 
     <script type="text/javascript">
+      // TODO: Tratar o caso onde gera a porta no último loop
       let matrix = [];
       let previousPosition = []; // armazena a última posição
       let currentHouseIndex = 0;
 
       // Gerar uma matriz quadrada com base em n elementos (5x5, 6x6)
-      const numberOfRowsCol = 5;
+      const numberOfRowsCol = 6;
 
       // Gera a matriz
       function fillMatrix() {
@@ -67,15 +68,17 @@
         walkYPosition,
         initialRunPoint,
         numberOfIterations,
+        nextHousePreviousDoorPosition,
         matrix: matrixData,
       }) {
         // Para o loop
-        if (initialRunPoint > numberOfIterations) {
+        if (initialRunPoint >= numberOfIterations) {
           return false;
         }
 
         let currentXPosition;
         let currentYPosition;
+        let isStartPoint;
 
         // Caso seja a primeira casa, gera uma posição aleatório
         // Caso contrário, irá percorrer o caminho que está sendo gerado
@@ -83,16 +86,17 @@
           const [initialPositionX, initialPositionY] = initialMatrixPosition();
           currentXPosition = initialPositionX;
           currentYPosition = initialPositionY;
+          isStartPoint = true;
         } else {
           currentXPosition = walkXPosition;
           currentYPosition = walkYPosition;
         }
 
         // Define quais casas são válidas (no grid)
-        const leftHouse = [currentXPosition - 1, currentYPosition];
-        const rightHouse = [currentXPosition + 1, currentYPosition];
-        const topHouse = [currentXPosition, currentYPosition - 1];
-        const bottomHouse = [currentXPosition, currentYPosition + 1];
+        const topHouse = [currentXPosition - 1, currentYPosition];
+        const bottomHouse = [currentXPosition + 1, currentYPosition];
+        const rightHouse = [currentXPosition, currentYPosition - 1];
+        const leftHouse = [currentXPosition, currentYPosition + 1];
 
         const validHouses = [leftHouse, rightHouse, topHouse, bottomHouse];
 
@@ -129,19 +133,130 @@
         let findAlreadyCreatedHouse =
           matrixData[currentXPosition][currentYPosition];
 
+        function checkHouseDirectionToWalk() {
+          if (
+            nextHouseToWalk[0] === leftHouse[0] &&
+            nextHouseToWalk[1] === leftHouse[1]
+          ) {
+            return "LEFT";
+          }
+          if (
+            nextHouseToWalk[0] === rightHouse[0] &&
+            nextHouseToWalk[1] === rightHouse[1]
+          ) {
+            return "RIGHT";
+          }
+          if (
+            nextHouseToWalk[0] === topHouse[0] &&
+            nextHouseToWalk[1] === topHouse[1]
+          ) {
+            return "TOP";
+          }
+          if (
+            nextHouseToWalk[0] === bottomHouse[0] &&
+            nextHouseToWalk[1] === bottomHouse[1]
+          ) {
+            return "BOTTOM";
+          }
+        }
+
+        const checkDirection = checkHouseDirectionToWalk();
+
+        // console.log(checkDirection);
+
         // Verifica se já foi passado por essa casa
         // Se não, coloca um novo objeto dentro do array (cria os dados da sala)
         if (!findAlreadyCreatedHouse.length) {
           const data = {
             currentPosition: [currentXPosition, currentYPosition],
+            leftHouse:
+              nextHousePreviousDoorPosition === "LEFT" ||
+              checkDirection === "LEFT",
+            rightHouse:
+              nextHousePreviousDoorPosition === "RIGHT" ||
+              checkDirection === "RIGHT",
+            topHouse:
+              nextHousePreviousDoorPosition === "TOP" ||
+              checkDirection === "TOP",
+            bottomHouse:
+              nextHousePreviousDoorPosition === "BOTTOM" ||
+              checkDirection === "BOTTOM",
           };
 
+          if (isStartPoint) {
+            data.isStartRoom = true;
+          }
+
           matrixData[currentXPosition][currentYPosition].push(data);
+        } else {
+          const sameHouse = {
+            ...matrixData[currentXPosition][currentYPosition][0],
+          };
+
+          if (sameHouse.leftHouse) {
+            sameHouse.leftHouse = true;
+          } else if (
+            nextHousePreviousDoorPosition === "LEFT" ||
+            checkDirection === "LEFT"
+          ) {
+            sameHouse.leftHouse = true;
+          }
+
+          if (sameHouse.rightHouse) {
+            sameHouse.rightHouse = true;
+          } else if (
+            nextHousePreviousDoorPosition === "RIGHT" ||
+            checkDirection === "RIGHT"
+          ) {
+            sameHouse.rightHouse = true;
+          }
+
+          if (sameHouse.topHouse) {
+            sameHouse.topHouse = true;
+          } else if (
+            nextHousePreviousDoorPosition === "TOP" ||
+            checkDirection === "TOP"
+          ) {
+            sameHouse.topHouse = true;
+          }
+
+          if (sameHouse.bottomHouse) {
+            sameHouse.bottomHouse = true;
+          } else if (
+            nextHousePreviousDoorPosition === "BOTTOM" ||
+            checkDirection === "BOTTOM"
+          ) {
+            sameHouse.bottomHouse = true;
+          }
+
+          console.log("Same house", sameHouse);
+
+          matrixData[currentXPosition][currentYPosition][0] = { ...sameHouse };
         }
 
         initialRunPoint++;
 
         const currentDataPreviousPosition = [walkXPosition, walkYPosition];
+
+        function decideInverseNextDoor() {
+          if (checkDirection === "LEFT") {
+            return "RIGHT";
+          }
+
+          if (checkDirection === "RIGHT") {
+            return "LEFT";
+          }
+
+          if (checkDirection === "TOP") {
+            return "BOTTOM";
+          }
+
+          if (checkDirection === "BOTTOM") {
+            return "TOP";
+          }
+        }
+
+        const decideInverseDoor = decideInverseNextDoor();
 
         return walk({
           walkPreviousPosition: currentDataPreviousPosition,
@@ -149,6 +264,7 @@
           walkYPosition: nextHouseToWalk[1],
           initialRunPoint,
           numberOfIterations,
+          nextHousePreviousDoorPosition: decideInverseDoor,
           matrix: matrixData,
         });
       }
@@ -164,8 +280,11 @@
           walkYPosition: null,
           initialRunPoint,
           numberOfIterations,
+          nextHousePreviousDoorPosition: null,
           matrix,
         });
+
+        console.log(matrix);
       }
 
       // Order of functions
@@ -185,17 +304,51 @@
       generateGridElement();
 
       function generateGridElement() {
+        // console.clear();
         const wrapper = document.createElement("div");
         wrapper.setAttribute("id", "wrapper");
 
         matrix.forEach((xPositionGrid) => {
+          const xPositionGridLength = xPositionGrid.length;
+
           const generateRows = document.createElement("div");
 
-          xPositionGrid.forEach((yPositionGrid) => {
+          generateRows.classList.add("row-wrapper");
+
+          xPositionGrid.forEach((yPositionGrid, index) => {
+            const yPositionGridLength = xPositionGrid.length;
             const generateInnerRows = document.createElement("div");
 
             if (yPositionGrid.length) {
               generateInnerRows.classList.add("house");
+
+              if (yPositionGrid[0].leftHouse) {
+                const generateDoor = document.createElement("div");
+                generateDoor.classList.add("left-room");
+                generateInnerRows.appendChild(generateDoor);
+              }
+
+              if (yPositionGrid[0].rightHouse) {
+                const generateDoor = document.createElement("div");
+                generateDoor.classList.add("right-room");
+                generateInnerRows.appendChild(generateDoor);
+              }
+
+              if (yPositionGrid[0].topHouse) {
+                const generateDoor = document.createElement("div");
+                generateDoor.classList.add("top-room");
+                generateInnerRows.appendChild(generateDoor);
+              }
+
+              if (yPositionGrid[0].bottomHouse) {
+                const generateDoor = document.createElement("div");
+                generateDoor.classList.add("bottom-room");
+                generateInnerRows.appendChild(generateDoor);
+              }
+
+              if (yPositionGrid[0].isStartRoom) {
+                generateInnerRows.classList.add("start-room");
+              }
             }
 
             generateRows.appendChild(generateInnerRows);

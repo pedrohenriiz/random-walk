@@ -30,55 +30,43 @@ html {
 }
 
 .house {
-  /* background-color: #c9c9c9; */
-  /* position: relative; */
-  background-color: lightblue;
+  background-color: #f0efef;
   position: relative;
 }
 
 .start-room {
-  background-color: greenyellow !important;
+  background-color: rgb(204, 233, 201) !important;
 }
 
-/* .boss {
-  background-color: tomato !important;
+.last-room {
+  background-color: rgb(247, 222, 215) !important;
 }
-
-.start-room {
-  background-color: greenyellow !important;
-}
-
-.start-room-and-boss-room {
-  background-color: aquamarine !important;
-} */
 
 .left-room,
 .right-room,
 .top-room,
 .bottom-room {
   position: absolute;
-  width: 10px !important;
-  height: 10px !important;
-  background-color: red !important;
-  /* transform: translate(-50%, -50%); */
+  width: 7px !important;
+  height: 7px !important;
 }
 
 .left-room {
-  top: 40%;
+  top: 50%;
   left: 0;
-  background-color: navy !important;
+  background-color: rgb(139, 74, 14) !important;
 }
 
 .right-room {
   right: 0;
-  top: 40%;
-  background-color: rgb(255, 145, 0) !important;
+  top: 50%;
+  background-color: rgb(70, 70, 70) !important;
 }
 
 .bottom-room {
   top: 80%;
   left: 50%;
-  background-color: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 0, 0) !important;
 }
 
 .top-room {

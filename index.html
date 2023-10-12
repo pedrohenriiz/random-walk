@@ -23,6 +23,7 @@
       let previousPosition = []; // armazena a última posição
       let currentHouseIndex = 0;
       let walkedHouses = [];
+      let startHouse = [];
 
       // Gerar uma matriz quadrada com base em n elementos (5x5, 6x6)
       const numberOfRowsCol = 6;
@@ -104,6 +105,7 @@
           currentXPosition = initialPositionX;
           currentYPosition = initialPositionY;
 
+          startHouse = [initialPositionX, initialPositionY];
           isStartPoint = true;
         } else {
           currentXPosition = walkXPosition;
@@ -318,6 +320,8 @@
           nextHousePreviousDoorPosition: null,
           matrix,
         });
+
+        findFarthestPosition(matrix, startHouse);
       }
 
       // Order of functions
@@ -329,6 +333,37 @@
       // Gera um número aleatório dentro de um intervalo
       function randomIntFromInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      // Pega o ponto mais longe
+      function findFarthestPosition(matrix, startPoint) {
+        let farthestPosition = null;
+        let maxDistance = -1;
+
+        const matrixInitialPosition = matrix[startPoint[0]][startPoint[1]][0];
+
+        for (let i = 0; i < matrix.length; i++) {
+          for (let j = 0; j < matrix[i].length; j++) {
+            if (matrix[i][j].length) {
+              const distance =
+                Math.abs(startPoint[0] - i) + Math.abs(startPoint[1] - j);
+
+              if (distance > maxDistance) {
+                maxDistance = distance;
+                farthestPosition = [i, j];
+              }
+            }
+          }
+        }
+
+        const data = {
+          ...matrix[farthestPosition[0]][farthestPosition[1]][0],
+          isBossRoom: true,
+        };
+
+        matrix[farthestPosition[0]][farthestPosition[1]][0] = data;
+
+        return farthestPosition;
       }
 
       // *** Draw on screen ***
@@ -389,6 +424,10 @@
               if (yPositionGrid[0].lastHouse) {
                 generateInnerRows.classList.add("last-room");
               }
+
+              if (yPositionGrid[0].isBossRoom) {
+                generateInnerRows.classList.add("boss-room");
+              }
             }
 
             generateRows.appendChild(generateInnerRows);
@@ -406,6 +445,7 @@
         currentHouseIndex = 0;
         previousPosition = [];
         walkedHouses = [];
+        startHouse = [];
       }
 
       // Reseta o grid para posicionar o novo mapa

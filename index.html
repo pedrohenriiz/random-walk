@@ -9,10 +9,15 @@
     <main>
       <div id="grid"></div>
 
-      <button type="button">Generate random grid</button>
+      <button id="generate" type="button">Generate random grid</button>
     </main>
 
     <script type="text/javascript">
+      // Pegar a casa mais distante a partir do ponto inicial
+      // Verificar quais portas aquela casa tem
+      // Se tiver uma só, não fazer nada
+      // Se tiver mais de uma, iterar sobre cada porta removendo as excessivas, junto com as portas que fazem associação
+
       // TODO: Tratar o caso onde gera a porta no último loop
       let matrix = [];
       let previousPosition = []; // armazena a última posição
@@ -263,7 +268,10 @@
 
         initialRunPoint++;
 
-        const currentDataPreviousPosition = [walkXPosition, walkYPosition];
+        const currentDataPreviousPosition = [
+          currentXPosition,
+          currentYPosition,
+        ];
 
         function decideInverseNextDoor() {
           if (checkDirection === "LEFT") {
@@ -329,7 +337,6 @@
       generateGridElement();
 
       function generateGridElement() {
-        // console.clear();
         const wrapper = document.createElement("div");
         wrapper.setAttribute("id", "wrapper");
 
@@ -398,6 +405,7 @@
         matrix = [];
         currentHouseIndex = 0;
         previousPosition = [];
+        walkedHouses = [];
       }
 
       // Reseta o grid para posicionar o novo mapa
@@ -415,7 +423,7 @@
         generateGridElement();
       }
 
-      const buttonElement = document.querySelector("button");
+      const buttonElement = document.getElementById("generate");
 
       buttonElement.addEventListener("click", generateNewMap);
     </script>

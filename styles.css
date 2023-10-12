@@ -5,20 +5,72 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
+  max-width: 100vw;
 }
 
-#grid div {
+#wrapper {
   display: flex;
+  max-width: 100vw;
 }
 
-#grid div > div {
+.row-wrapper {
   display: flex;
   flex-direction: column;
+  gap: 6px;
   width: 80px;
   height: 300px;
+  margin: 3px;
+
   border: 1px solid #e3e3e3;
 }
 
-#grid div > div.house {
-  background-color: #c9c9c9;
+.row-wrapper div {
+  flex: 1;
+  border: 1px solid #c9c9c9;
+}
+
+.house {
+  background-color: #f0efef;
+  position: relative;
+}
+
+.start-room {
+  background-color: rgb(204, 233, 201) !important;
+}
+
+.last-room {
+  background-color: rgb(247, 222, 215) !important;
+}
+
+.left-room,
+.right-room,
+.top-room,
+.bottom-room {
+  position: absolute;
+  width: 7px !important;
+  height: 7px !important;
+}
+
+.left-room {
+  top: 50%;
+  left: 0;
+  background-color: rgb(139, 74, 14) !important;
+}
+
+.right-room {
+  right: 0;
+  top: 50%;
+  background-color: rgb(70, 70, 70) !important;
+}
+
+.bottom-room {
+  top: 80%;
+  left: 50%;
+  background-color: rgb(255, 0, 0) !important;
+}
+
+.top-room {
+  top: 0;
+  left: 50%;
+  background-color: rgb(236, 26, 255) !important;
 }

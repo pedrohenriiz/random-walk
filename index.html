@@ -207,6 +207,10 @@
             leftHouse: leftDoor,
             topHouse: topDoor,
             bottomHouse: bottomDoor,
+            isStartRoom: false,
+            isBossRoom: false,
+            isKeyRoom: false,
+            lastHouse: false,
           };
 
           if (isStartPoint) {
@@ -322,6 +326,8 @@
         });
 
         findFarthestPosition(matrix, startHouse);
+
+        generateKeyRoom(matrix);
       }
 
       // Order of functions
@@ -333,6 +339,43 @@
       // Gera um número aleatório dentro de um intervalo
       function randomIntFromInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      // Gera a key room
+      function generateKeyRoom() {
+        const validPositions = [];
+
+        for (let i = 0; i < matrix.length; i++) {
+          for (let j = 0; j < matrix[i].length; j++) {
+            const position = matrix[i][j][0];
+
+            if (position) {
+              validPositions.push(position);
+            }
+          }
+        }
+
+        const filteredPositions = validPositions.filter((validPosition) => {
+          if (validPosition.isStartRoom || validPosition.isBossRoom) {
+            return false;
+          }
+
+          return true;
+        });
+
+        const randomKeyPosition =
+          filteredPositions[
+            Math.floor(Math.random() * filteredPositions.length)
+          ];
+
+        const [x, y] = randomKeyPosition.currentPosition;
+
+        const data = {
+          ...matrix[x][y][0],
+          isKeyRoom: true,
+        };
+
+        matrix[x][y][0] = data;
       }
 
       // Pega o ponto mais longe
@@ -427,6 +470,10 @@
 
               if (yPositionGrid[0].isBossRoom) {
                 generateInnerRows.classList.add("boss-room");
+              }
+
+              if (yPositionGrid[0].isKeyRoom) {
+                generateInnerRows.classList.add("key-room");
               }
             }
 
